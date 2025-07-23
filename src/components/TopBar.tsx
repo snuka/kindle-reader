@@ -1,52 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, IconButton, Badge } from '@mui/material';
 import {
   WifiOutlined,
   Battery90Outlined,
   HomeOutlined,
-  ListOutlined,
   SearchOutlined,
   Brightness7Outlined,
+  NotesOutlined,
 } from '@mui/icons-material';
+
+import StudyTimer from './StudyTimer';
 
 interface TopBarProps {
   bookTitle: string;
+  isVisible: boolean;
+  onSearchClick: () => void;
+  onAnnotationsClick?: () => void;
+  annotationsCount?: number;
+  studyTime: number;
+  todayTotal: number;
+  weekTotal: number;
+  currentSessionPages: number;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ bookTitle }) => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: false,
-    });
-  };
+const TopBar: React.FC<TopBarProps> = ({ 
+  bookTitle, 
+  isVisible, 
+  onSearchClick,
+  onAnnotationsClick,
+  annotationsCount = 0,
+  studyTime,
+  todayTotal,
+  weekTotal,
+  currentSessionPages,
+}) => {
 
   return (
     <Box
       sx={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         px: 3,
-        borderBottom: '1px solid #ddd',
-        bgcolor: '#f8f8f8',
+        bgcolor: 'transparent',
+        zIndex: 10,
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        pointerEvents: isVisible ? 'auto' : 'none',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <HomeOutlined sx={{ fontSize: 20, color: '#666' }} />
-        <ListOutlined sx={{ fontSize: 20, color: '#666' }} />
-        <SearchOutlined sx={{ fontSize: 20, color: '#666' }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: '200px' }}>
+        <IconButton sx={{ p: 0.5 }} onClick={(e) => e.stopPropagation()}>
+          <HomeOutlined sx={{ fontSize: 20, color: '#666' }} />
+        </IconButton>
+        <IconButton sx={{ p: 0.5 }} onClick={(e) => { e.stopPropagation(); onSearchClick(); }}>
+          <SearchOutlined sx={{ fontSize: 20, color: '#666' }} />
+        </IconButton>
+        {onAnnotationsClick && (
+          <IconButton sx={{ p: 0.5 }} onClick={(e) => { e.stopPropagation(); onAnnotationsClick(); }}>
+            <Badge badgeContent={annotationsCount} color="primary" sx={{ '& .MuiBadge-badge': { fontSize: 10, height: 16, minWidth: 16 } }}>
+              <NotesOutlined sx={{ fontSize: 20, color: '#666' }} />
+            </Badge>
+          </IconButton>
+        )}
       </Box>
 
       <Typography
@@ -62,13 +84,16 @@ const TopBar: React.FC<TopBarProps> = ({ bookTitle }) => {
         {bookTitle}
       </Typography>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: '200px', justifyContent: 'flex-end' }}>
         <Brightness7Outlined sx={{ fontSize: 18, color: '#666' }} />
         <WifiOutlined sx={{ fontSize: 18, color: '#666' }} />
         <Battery90Outlined sx={{ fontSize: 18, color: '#666' }} />
-        <Typography variant="body2" sx={{ fontSize: '14px', color: '#666' }}>
-          {formatTime(currentTime)}
-        </Typography>
+        <StudyTimer
+          studyTime={studyTime}
+          todayTotal={todayTotal}
+          weekTotal={weekTotal}
+          currentSessionPages={currentSessionPages}
+        />
       </Box>
     </Box>
   );
